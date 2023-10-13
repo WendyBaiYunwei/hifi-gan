@@ -158,7 +158,7 @@ def train(rank, a, h):
             # print(y_mel[0,20,-10:])
             y = y.unsqueeze(1)
             
-            whitened_mel, target = reducer(x)
+            whitened_mel = reducer(x)
             # print(whitened_mel[0,20,-10:])
             # exit()
             
@@ -166,7 +166,7 @@ def train(rank, a, h):
             optim_g.zero_grad()
 
             # L1 Mel-Spectrogram Loss
-            loss_mel = F.l1_loss(target, whitened_mel) * 45
+            loss_mel = F.l1_loss(x, whitened_mel) * 45
             loss_gen_all = loss_mel
 
             loss_gen_all.backward()

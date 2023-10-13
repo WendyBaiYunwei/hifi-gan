@@ -282,71 +282,73 @@ def generator_loss(disc_outputs):
 
     return loss, gen_losses
 
-# class Reducer(nn.Module):
-#     def __init__(self, device):
-#         super(Reducer, self).__init__()
-#         self.reducer = attentions.Encoder(
-#             hidden_channels=80,
-#             filter_channels=32,
-#             n_heads=2,
-#             n_layers=4,
-#             kernel_size=1,
-#             p_dropout=0.1)
-#         self.device = device
-        
-#     def forward(self, x, whiten=True):
-#         print(x[0,15,110:120])
-#         if whiten == True:
-#             # x = x - torch.mean(x, dim=-1).reshape(x.shape[0],-1,1).\
-#             #     repeat(1, 1, x.shape[-1])
-#             # original_z = x
-#             # x = x.reshape(-1, 16, 16)
-#             x_cp = x.detach()
-#             u, o_s, v = torch.svd(x_cp)
-#             o_s[:, 10:] = 0
-#             # o_s = torch.diag_embed(o_s)
-#             # print(o_s.shape, u.shape, v.shape)
-#             # exit()
-#             # x = torch.bmm(u, v.mT)
-#             x = torch.bmm(torch.bmm(u, torch.diag_embed(o_s)), v.mT)
-#             # print(torch.mm(torch.mm(u[0], torch.diag_embed(o_s[0])), v[0].mT) - x_cp[0])
-#             # exit()
-#             x = x.to(self.device)
-        
-#         # print(x[:3,0,:10])
-#         x = self.reducer(x)
-#         print(x[0,15,110:120])
-#         exit()
-#         return x
-
 class Reducer(nn.Module):
     def __init__(self, device):
         super(Reducer, self).__init__()
         self.reducer = attentions.Encoder(
-            hidden_channels=32,
-            filter_channels=32,
+            hidden_channels=80,
+            filter_channels=16,
             n_heads=2,
-            n_layers=4,
+            n_layers=3,
             kernel_size=1,
             p_dropout=0.1)
         self.device = device
         
     def forward(self, x, whiten=True):
+        # print(x[0,5,-10:])
         if whiten == True:
             # x = x - torch.mean(x, dim=-1).reshape(x.shape[0],-1,1).\
             #     repeat(1, 1, x.shape[-1])
             # original_z = x
             # x = x.reshape(-1, 16, 16)
             x_cp = x.detach()
-            u, o_s, v = torch.svd(x_cp) #os.shape: batch,32
-            target_s = o_s.detach().clone()
+            u, o_s, v = torch.svd(x_cp)
             o_s[:, 10:] = 0
-            o_s = o_s.unsqueeze(-1)
-            concat = torch.concat([u.mT, v, o_s], dim=-1)
-        # print((torch.zeros(o_s[:, 10:].shape).to(self.device) + 0.01).shape)
+            # o_s = torch.diag_embed(o_s)
+            # print(o_s.shape, u.shape, v.shape)
+            # exit()
+            # x = torch.bmm(u, v.mT)
+            x = torch.bmm(torch.bmm(u, torch.diag_embed(o_s)), v.mT)
+            # print(torch.mm(torch.mm(u[0], torch.diag_embed(o_s[0])), v[0].mT) - x_cp[0])
+            # exit()
+            x = x.to(self.device)
+        
+        # print(x[:3,0,:10])
+        
+        x = self.reducer(x)
+        # print(x[0,5,-10:])
+        # # print(x.shape)
         # exit()
-        s_update = self.reducer(concat).squeeze()
-        s_update = torch.mean(s_update, dim=-1).squeeze()
-        # x_recon = torch.bmm(torch.bmm(u, torch.diag_embed(s_update)), v.mT)
-        return s_update, target_s
+        return x
+
+# class Reducer(nn.Module):
+#     def __init__(self, device):
+#         super(Reducer, self).__init__()
+#         self.reducer = attentions.Encoder(
+#             hidden_channels=32,
+#             filter_channels=8,
+#             n_heads=2,
+#             n_layers=3,
+#             kernel_size=1,
+#             p_dropout=0.1)
+#         self.device = device
+        
+#     def forward(self, x, whiten=True):
+#         if whiten == True:
+#             # x = x - torch.mean(x, dim=-1).reshape(x.shape[0],-1,1).\
+#             #     repeat(1, 1, x.shape[-1])
+#             # original_z = x
+#             # x = x.reshape(-1, 16, 16)
+#             x_cp = x.detach()
+#             u, o_s, v = torch.svd(x_cp) #os.shape: batch,32
+#             target_s = o_s.detach().clone()
+#             o_s[:, 10:] = 0
+#             o_s = o_s.unsqueeze(-1)
+#             concat = torch.concat([u.mT, v, o_s], dim=-1)
+#         # print((torch.zeros(o_s[:, 10:].shape).to(self.device) + 0.01).shape)
+#         # exit()
+#         s_update = self.reducer(concat).squeeze()
+#         s_update = torch.mean(s_update, dim=-1).squeeze()
+#         # x_recon = torch.bmm(torch.bmm(u, torch.diag_embed(s_update)), v.mT)
+#         return s_update, target_s
         
