@@ -1,0 +1,7 @@
+test_files/*
+*.wav
+*.txt
+__pycache__/*
+cp_hifigan/*
+*.txt
+LJSpeech-1.1/*
